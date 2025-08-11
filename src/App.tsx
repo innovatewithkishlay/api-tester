@@ -1,7 +1,12 @@
-export default function App() {
+import React from "react";
+import ApiForm from "./components/ApiForm";
+
+const App: React.FC = () => {
   return (
-    <div className="bg-blue-500 text-white p-4 text-xl">
-      Tailwind is working!
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <ApiForm />
     </div>
-  )
-}
+  );
+};
+
+export default App;
