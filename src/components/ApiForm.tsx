@@ -2,13 +2,35 @@ import React, { useState } from "react";
 import axios from "axios";
 import ResponseViewer from "./ResponseViewer";
 
+interface Header {
+  key: string;
+  value: string;
+}
+
 const ApiForm: React.FC = () => {
   const [method, setMethod] = useState<string>("GET");
   const [url, setUrl] = useState<string>("");
   const [body, setBody] = useState<string>("{}");
+  const [headers, setHeaders] = useState<Header[]>([{ key: "", value: "" }]);
   const [status, setStatus] = useState<number | null>(null);
   const [responseData, setResponseData] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
+
+  const handleHeaderChange = (index: number, field: "key" | "value", value: string) => {
+    const updated = [...headers];
+    updated[index][field] = value;
+    setHeaders(updated);
+  };
+
+  const addHeaderRow = () => {
+    setHeaders([...headers, { key: "", value: "" }]);
+  };
+
+  const removeHeaderRow = (index: number) => {
+    if (headers.length > 1) {
+      setHeaders(headers.filter((_, i) => i !== index));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +50,14 @@ const ApiForm: React.FC = () => {
       }
     }
 
+    // Build axios-compatible headers object
+    const headerObj: Record<string, string> = {};
+    headers.forEach(h => {
+      if (h.key.trim()) {
+        headerObj[h.key] = h.value;
+      }
+    });
+
     try {
       setLoading(true);
       setStatus(null);
@@ -37,7 +67,10 @@ const ApiForm: React.FC = () => {
         method,
         url,
         data: ["POST", "PUT", "PATCH"].includes(method) ? parsedBody : undefined,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...headerObj,
+        },
       });
 
       setStatus(res.status);
@@ -68,6 +101,7 @@ const ApiForm: React.FC = () => {
       >
         <h2 className="text-2xl font-semibold">API Request Builder</h2>
 
+        {/* Method + URL */}
         <div className="flex gap-2">
           <select
             value={method}
@@ -89,6 +123,44 @@ const ApiForm: React.FC = () => {
           />
         </div>
 
+        {/* Headers section */}
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <label className="font-medium">Headers</label>
+            <button type="button" onClick={addHeaderRow} className="text-blue-600 hover:underline text-sm">
+              + Add Header
+            </button>
+          </div>
+          {headers.map((h, index) => (
+            <div key={index} className="flex gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Header Key"
+                value={h.key}
+                onChange={(e) => handleHeaderChange(index, "key", e.target.value)}
+                className="border rounded px-3 py-2 flex-1"
+              />
+              <input
+                type="text"
+                placeholder="Header Value"
+                value={h.value}
+                onChange={(e) => handleHeaderChange(index, "value", e.target.value)}
+                className="border rounded px-3 py-2 flex-1"
+              />
+              {headers.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeHeaderRow(index)}
+                  className="text-red-500 font-bold px-2"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* JSON Body section */}
         {["POST", "PUT", "PATCH"].includes(method) && (
           <textarea
             placeholder="Enter JSON request body..."
@@ -98,6 +170,7 @@ const ApiForm: React.FC = () => {
           />
         )}
 
+        {/* Send Button */}
         <button
           type="submit"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
