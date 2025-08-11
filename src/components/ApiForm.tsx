@@ -5,6 +5,7 @@ import ResponseViewer from "./ResponseViewer";
 const ApiForm: React.FC = () => {
   const [method, setMethod] = useState<string>("GET");
   const [url, setUrl] = useState<string>("");
+  const [body, setBody] = useState<string>("{}");
   const [status, setStatus] = useState<number | null>(null);
   const [responseData, setResponseData] = useState<unknown>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -17,12 +18,27 @@ const ApiForm: React.FC = () => {
       return;
     }
 
+    let parsedBody: unknown = {};
+    if (["POST", "PUT", "PATCH"].includes(method)) {
+      try {
+        parsedBody = JSON.parse(body || "{}");
+      } catch {
+        alert("Request body is not valid JSON.");
+        return;
+      }
+    }
+
     try {
       setLoading(true);
       setStatus(null);
       setResponseData(null);
 
-      const res = await axios({ method, url });
+      const res = await axios({
+        method,
+        url,
+        data: ["POST", "PUT", "PATCH"].includes(method) ? parsedBody : undefined,
+        headers: { "Content-Type": "application/json" },
+      });
 
       setStatus(res.status);
       setResponseData(res.data);
@@ -72,6 +88,15 @@ const ApiForm: React.FC = () => {
             className="flex-1 border rounded px-3 py-2"
           />
         </div>
+
+        {["POST", "PUT", "PATCH"].includes(method) && (
+          <textarea
+            placeholder="Enter JSON request body..."
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className="w-full border rounded px-3 py-2 font-mono text-sm min-h-[120px]"
+          />
+        )}
 
         <button
           type="submit"
