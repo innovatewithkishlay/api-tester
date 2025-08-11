@@ -15,7 +15,11 @@ interface HistoryPanelProps {
   isOpen: boolean;
 }
 
-const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, onSelect, isOpen }) => {
+const HistoryPanel: React.FC<HistoryPanelProps> = ({
+  history,
+  onSelect,
+  isOpen,
+}) => {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -29,7 +33,9 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, onSelect, isOpen }
           <h3 className="p-4 border-b text-lg font-semibold">History</h3>
           <div className="p-4 space-y-2">
             {history.length === 0 && (
-              <div className="text-gray-500 text-sm italic">No requests made yet.</div>
+              <div className="text-gray-500 text-sm italic">
+                No requests made yet.
+              </div>
             )}
             {history.map((item, idx) => (
               <div
@@ -37,7 +43,9 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, onSelect, isOpen }
                 className="border p-2 rounded cursor-pointer hover:bg-gray-100 transition"
                 onClick={() => onSelect(item)}
               >
-                <div className="font-medium">{item.method} — {item.url}</div>
+                <div className="font-medium">
+                  {item.method} — {item.url}
+                </div>
                 <div className="text-xs text-gray-500">
                   {new Date(item.timestamp).toLocaleString()}
                 </div>
