@@ -1,16 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ApiForm from "./components/ApiForm";
 import HistoryPanel from "./components/HistoryPanel";
+import type { HistoryItem } from "./components/HistoryPanel";
 import { Toaster } from "react-hot-toast";
 
 const App: React.FC = () => {
   const [historyVisible, setHistoryVisible] = useState(false);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   const toggleHistory = () => setHistoryVisible((v) => !v);
+  const closeHistory = () => setHistoryVisible(false);
+
+  // Click outside closes History
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        historyVisible &&
+        sidebarRef.current &&
+        !sidebarRef.current.contains(e.target as Node)
+      ) {
+        closeHistory();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [historyVisible]);
+
+  // ESC key closes History
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && historyVisible) closeHistory();
+    };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [historyVisible]);
+
+  const handleNewHistoryItem = (item: HistoryItem) => {
+    setHistory((prev) => [item, ...prev].slice(0, 20));
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 relative">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900 relative">
       {/* Toast Notifications */}
       <Toaster
         position="top-right"
@@ -19,14 +51,14 @@ const App: React.FC = () => {
             borderRadius: "8px",
             background: "#fff",
             color: "#333",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
           },
           success: {
-            iconTheme: { primary: "#4ade80", secondary: "#fff" },
+            iconTheme: { primary: "#4ade80", secondary: "#fff" }
           },
           error: {
-            iconTheme: { primary: "#f87171", secondary: "#fff" },
-          },
+            iconTheme: { primary: "#f87171", secondary: "#fff" }
+          }
         }}
       />
 
@@ -62,31 +94,63 @@ const App: React.FC = () => {
         </div>
       </motion.header>
 
-      {/* Main Content + History Sidebar layout */}
-      <main className="max-w-7xl mx-auto px-4 py-20 flex relative">
-        <div className="flex-1">
-          <ApiForm />
-        </div>
+      {/* Main Content */}
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 pt-20 pb-10 relative">
+        {/* API Form */}
+        <ApiForm onNewHistoryItem={handleNewHistoryItem} />
 
-        {/* History Sidebar */}
+        {/* Overlay + History Sidebar */}
         <AnimatePresence>
           {historyVisible && (
-            <motion.aside
-              id="history-panel"
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-[72px] right-0 bottom-0 w-96 bg-white border-l border-gray-200 shadow-lg z-40 overflow-y-auto"
-            >
-              <HistoryPanel
-                historyVisible={historyVisible}
-                onClose={() => setHistoryVisible(false)}
+            <>
+              {/* Transparent Overlay - still clickable */}
+              <motion.div
+                className="fixed inset-0 bg-transparent z-40"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               />
-            </motion.aside>
+              {/* Sidebar */}
+              <motion.aside
+                ref={sidebarRef}
+                id="history-panel"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="fixed top-[72px] right-0 bottom-0 w-[28rem] max-w-full bg-white border-l border-gray-200 shadow-lg z-50 overflow-y-auto"
+              >
+                <HistoryPanel
+                  history={history}
+                  onClose={closeHistory}
+                  onSelect={() => {
+                    closeHistory();
+                  }}
+                />
+              </motion.aside>
+            </>
           )}
         </AnimatePresence>
       </main>
+
+      {/* Footer */}
+      <motion.footer
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="border-t border-gray-200 bg-white py-4 text-center text-sm text-gray-500"
+      >
+        Made with ❤️ by{" "}
+        <a
+          href="https://github.com/innovatewithkishlay"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
+          innovatewithkishlay
+        </a>{" "}
+        | Open Source &amp; Contributions Welcome
+      </motion.footer>
     </div>
   );
 };
