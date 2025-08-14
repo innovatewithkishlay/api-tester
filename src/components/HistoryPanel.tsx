@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export interface HistoryItem {
   method: string;
@@ -10,41 +10,87 @@ export interface HistoryItem {
 }
 
 interface HistoryPanelProps {
-  history: HistoryItem[];
-  onSelect: (item: HistoryItem) => void;
-  isOpen: boolean;
+  history?: HistoryItem[];
+  onClose?: () => void;
+  onSelect?: (item: HistoryItem) => void;
 }
 
-const HistoryPanel: React.FC<HistoryPanelProps> = ({ history, onSelect, isOpen }) => {
+const methodColors: Record<string, string> = {
+  GET: "bg-green-500",
+  POST: "bg-blue-500",
+  PUT: "bg-yellow-500",
+  DELETE: "bg-red-500",
+  PATCH: "bg-purple-500",
+};
+
+const HistoryPanel: React.FC<HistoryPanelProps> = ({
+  history = [],
+  onClose,
+  onSelect = () => {},
+}) => {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ x: 300, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 300, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white rounded-lg shadow-md overflow-y-auto max-h-[80vh] text-gray-900"
+    <motion.div
+      className="h-full flex flex-col p-4 rounded-l-xl shadow-lg"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          📜 Request History
+        </h3>
+        <button
+          onClick={onClose}
+          aria-label="Close history panel"
+          className="text-gray-600 hover:text-gray-900 text-xl font-bold focus:outline-none"
         >
-          <h3 className="p-4 border-b border-gray-300 text-lg font-semibold">History</h3>
-          <div className="p-4 space-y-2">
-            {history.length === 0 && (
-              <div className="text-gray-500 text-sm italic">No requests made yet.</div>
-            )}
-            {history.map((item, idx) => (
-              <div
-                key={idx}
-                className="border border-gray-300 p-2 rounded cursor-pointer hover:bg-gray-100 transition"
+          ×
+        </button>
+      </div>
+
+      {/* Empty State */}
+      {history.length === 0 ? (
+        <div className="flex flex-col items-center justify-center flex-1 text-gray-500 space-y-2 select-none">
+          <span className="text-5xl">🗂️</span>
+          <p className="font-medium">No requests yet</p>
+          <p className="text-xs text-gray-400">Make a request to see it here</p>
+        </div>
+      ) : (
+        <ul className="overflow-y-auto flex-1 space-y-2">
+          {history.map((item, idx) => (
+            <motion.li
+              key={idx}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.2, delay: idx * 0.02 }}
+            >
+              <button
                 onClick={() => onSelect(item)}
+                className="w-full flex flex-col md:flex-row md:items-center justify-between gap-1 md:gap-2 text-left p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition duration-150 ease-in-out border border-transparent hover:border-gray-200 focus:ring-2 focus:ring-blue-300 focus:outline-none"
               >
-                <div className="font-medium">{item.method} — {item.url}</div>
-                <div className="text-xs text-gray-500">{new Date(item.timestamp).toLocaleString()}</div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-white text-xs font-bold px-2 py-1 rounded ${
+                      methodColors[item.method] || "bg-gray-500"
+                    }`}
+                  >
+                    {item.method}
+                  </span>
+                  <span className="text-sm font-medium text-gray-800 truncate max-w-[180px]">
+                    {item.url}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-500">
+                  {new Date(item.timestamp).toLocaleString()}
+                </span>
+              </button>
+            </motion.li>
+          ))}
+        </ul>
       )}
-    </AnimatePresence>
+    </motion.div>
   );
 };
 
