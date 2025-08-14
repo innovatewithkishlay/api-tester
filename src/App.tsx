@@ -139,12 +139,12 @@ const App: React.FC = () => {
       >
         Made with ❤️ by{" "}
         <a
-          href="https://github.com/innovatewithkishlay"
+          href="https://kishlaykumar.onrender.com"
           target="_blank"
           rel="noopener noreferrer"
           className="text-blue-600 hover:underline"
         >
-          innovatewithkishlay
+          Kishlay kumar
         </a>{" "}
         | Open Source &amp; Contributions Welcome
       </motion.footer>
