@@ -12,23 +12,21 @@ interface Header {
 const LOCAL_STORAGE_KEY = "apiTesterHistory";
 
 const ApiForm: React.FC = () => {
-  const [method, setMethod] = useState<string>("GET");
-  const [url, setUrl] = useState<string>("");
-  const [body, setBody] = useState<string>("{}");
+  const [method, setMethod] = useState("GET");
+  const [url, setUrl] = useState("");
+  const [body, setBody] = useState("{}");
   const [headers, setHeaders] = useState<Header[]>([{ key: "", value: "" }]);
   const [status, setStatus] = useState<number | null>(null);
   const [responseData, setResponseData] = useState<unknown>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [historyOpen, setHistoryOpen] = useState<boolean>(true);
+  const [historyOpen, setHistoryOpen] = useState(true);
   const [responseHeaders, setResponseHeaders] = useState<Record<string, string>>();
   const [duration, setDuration] = useState<number>();
 
   useEffect(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      setHistory(JSON.parse(saved));
-    }
+    if (saved) setHistory(JSON.parse(saved));
   }, []);
 
   const saveHistoryItem = (item: HistoryItem) => {
@@ -50,24 +48,20 @@ const ApiForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!url.trim()) {
-      alert("Please enter a valid URL.");
-      return;
-    }
+    if (!url.trim()) return alert("Please enter a valid URL.");
 
     let parsedBody: unknown = {};
     if (["POST", "PUT", "PATCH"].includes(method)) {
       try {
         parsedBody = JSON.parse(body || "{}");
       } catch {
-        alert("Request body is not valid JSON.");
+        alert("Invalid JSON body");
         return;
       }
     }
 
     const headerObj: Record<string, string> = {};
-    headers.forEach((h) => {
+    headers.forEach(h => {
       if (h.key.trim()) headerObj[h.key] = h.value;
     });
 
@@ -103,22 +97,20 @@ const ApiForm: React.FC = () => {
         timestamp: Date.now(),
       });
     } catch (err: unknown) {
-      if (axios.isAxiosError(err)) {
-        if (err.response) {
-          setStatus(err.response.status);
-          setResponseData(err.response.data);
-          if (err.response.headers) {
-            const plainHeaders: Record<string, string> = {};
-            Object.entries(err.response.headers).forEach(([k, v]) => (plainHeaders[k] = String(v)));
-            setResponseHeaders(plainHeaders);
-          }
-        } else {
-          setStatus(0);
-          setResponseData({ error: err.message });
+      if (axios.isAxiosError(err) && err.response) {
+        setStatus(err.response.status);
+        setResponseData(err.response.data);
+        if (err.response.headers) {
+          const plain: Record<string, string> = {};
+          Object.entries(err.response.headers).forEach(([k, v]) => (plain[k] = String(v)));
+          setResponseHeaders(plain);
         }
+      } else if (err instanceof Error) {
+        setStatus(0);
+        setResponseData({ error: err.message });
       } else {
         setStatus(0);
-        setResponseData({ error: "An unexpected error occurred" });
+        setResponseData({ error: "Unexpected error" });
       }
     } finally {
       setLoading(false);
@@ -137,14 +129,14 @@ const ApiForm: React.FC = () => {
       <div>
         <form
           onSubmit={handleSubmit}
-          className="p-6 rounded-lg bg-white dark:bg-[#2b2b2b] shadow-md space-y-4"
+          className="p-6 rounded-lg bg-white dark:bg-[#2b2b2b] shadow-md space-y-4 text-gray-900 dark:text-gray-100"
         >
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-semibold">API Request Builder</h2>
             <button
               type="button"
               onClick={() => setHistoryOpen(!historyOpen)}
-              className="text-sm text-blue-600 hover:underline md:hidden"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline md:hidden"
             >
               {historyOpen ? "Hide History" : "Show History"}
             </button>
@@ -154,7 +146,7 @@ const ApiForm: React.FC = () => {
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-50 dark:bg-[#3a3a3a]"
+              className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-50 dark:bg-[#3a3a3a] text-gray-900 dark:text-gray-100"
             >
               <option>GET</option>
               <option>POST</option>
@@ -167,7 +159,7 @@ const ApiForm: React.FC = () => {
               placeholder="Enter request URL..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-50 dark:bg-[#3a3a3a]"
+              className="flex-1 border border-gray-300 dark:border-gray-600 rounded px-3 py-2 bg-gray-50 dark:bg-[#3a3a3a] text-gray-900 dark:text-gray-100"
             />
           </div>
 
@@ -177,7 +169,7 @@ const ApiForm: React.FC = () => {
               <button
                 type="button"
                 onClick={addHeaderRow}
-                className="text-blue-600 hover:underline text-sm"
+                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
               >
                 + Add Header
               </button>
@@ -189,14 +181,14 @@ const ApiForm: React.FC = () => {
                   placeholder="Header Key"
                   value={h.key}
                   onChange={(e) => handleHeaderChange(index, "key", e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 flex-1 bg-gray-50 dark:bg-[#3a3a3a]"
+                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 flex-1 bg-gray-50 dark:bg-[#3a3a3a] text-gray-900 dark:text-gray-100"
                 />
                 <input
                   type="text"
                   placeholder="Header Value"
                   value={h.value}
                   onChange={(e) => handleHeaderChange(index, "value", e.target.value)}
-                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 flex-1 bg-gray-50 dark:bg-[#3a3a3a]"
+                  className="border border-gray-300 dark:border-gray-600 rounded px-3 py-2 flex-1 bg-gray-50 dark:bg-[#3a3a3a] text-gray-900 dark:text-gray-100"
                 />
                 {headers.length > 1 && (
                   <button
@@ -216,7 +208,7 @@ const ApiForm: React.FC = () => {
               placeholder="Enter JSON request body..."
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 font-mono text-sm min-h-[120px] bg-gray-50 dark:bg-[#3a3a3a]"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 font-mono text-sm min-h-[120px] bg-gray-50 dark:bg-[#3a3a3a] text-gray-900 dark:text-gray-100"
             />
           )}
 
@@ -237,9 +229,11 @@ const ApiForm: React.FC = () => {
         />
       </div>
 
+      {/* History Panel Desktop */}
       <div className="hidden md:block">
         <HistoryPanel history={history} onSelect={handleHistorySelect} isOpen={true} />
       </div>
+      {/* History Panel Mobile */}
       {historyOpen && (
         <div className="md:hidden col-span-full">
           <HistoryPanel history={history} onSelect={handleHistorySelect} isOpen={historyOpen} />
