@@ -8,12 +8,7 @@ interface ResponseViewerProps {
   duration?: number;
 }
 
-const ResponseViewer: React.FC<ResponseViewerProps> = ({
-  status,
-  data,
-  headers,
-  duration,
-}) => {
+const ResponseViewer: React.FC<ResponseViewerProps> = ({ status, data, headers, duration }) => {
   const [showHeaders, setShowHeaders] = useState(false);
 
   return (
@@ -25,7 +20,7 @@ const ResponseViewer: React.FC<ResponseViewerProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 15 }}
           transition={{ duration: 0.25 }}
-          className="mt-6 p-4 bg-gray-900 dark:bg-gray-800 text-green-400 rounded-lg overflow-auto max-h-96 shadow-lg"
+          className="mt-6 p-4 bg-[#1b1b1b] dark:bg-[#1b1b1b] text-green-400 rounded-lg overflow-auto max-h-96 shadow-lg"
         >
           <div className="mb-2 text-sm text-gray-400 flex justify-between">
             <span>Status: {status}</span>
@@ -41,7 +36,7 @@ const ResponseViewer: React.FC<ResponseViewerProps> = ({
                 {showHeaders ? "Hide Headers" : "Show Headers"}
               </button>
               {showHeaders && (
-                <pre className="whitespace-pre-wrap break-all text-xs text-gray-300">
+                <pre className="bg-[#2a2a2a] p-2 rounded mt-2 text-xs text-gray-300">
                   {JSON.stringify(headers, null, 2)}
                 </pre>
               )}
