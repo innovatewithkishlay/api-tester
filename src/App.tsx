@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const toggleHistory = () => setHistoryVisible((v) => !v);
   const closeHistory = () => setHistoryVisible(false);
 
-  // Click outside closes History
+  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -28,7 +28,7 @@ const App: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [historyVisible]);
 
-  // ESC key closes History
+  // Close on ESC key
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && historyVisible) closeHistory();
@@ -37,6 +37,7 @@ const App: React.FC = () => {
     return () => document.removeEventListener("keydown", handleEsc);
   }, [historyVisible]);
 
+  // Add new request to history
   const handleNewHistoryItem = (item: HistoryItem) => {
     setHistory((prev) => [item, ...prev].slice(0, 20));
   };
@@ -53,12 +54,8 @@ const App: React.FC = () => {
             color: "#333",
             boxShadow: "0 4px 12px rgba(0,0,0,0.1)"
           },
-          success: {
-            iconTheme: { primary: "#4ade80", secondary: "#fff" }
-          },
-          error: {
-            iconTheme: { primary: "#f87171", secondary: "#fff" }
-          }
+          success: { iconTheme: { primary: "#4ade80", secondary: "#fff" } },
+          error: { iconTheme: { primary: "#f87171", secondary: "#fff" } }
         }}
       />
 
@@ -96,16 +93,16 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 pt-20 pb-10 relative">
-        {/* API Form */}
+        {/* Main API Form */}
         <ApiForm onNewHistoryItem={handleNewHistoryItem} />
 
-        {/* Overlay + History Sidebar */}
+        {/* Overlay + Sidebar */}
         <AnimatePresence>
           {historyVisible && (
             <>
-              {/* Transparent Overlay - still clickable */}
+              {/* Blurred overlay */}
               <motion.div
-                className="fixed inset-0 bg-transparent z-40"
+                className="fixed inset-0 bg-white/30 backdrop-blur-sm z-40"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -118,7 +115,7 @@ const App: React.FC = () => {
                 animate={{ x: 0 }}
                 exit={{ x: "100%" }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="fixed top-[72px] right-0 bottom-0 w-[28rem] max-w-full bg-white border-l border-gray-200 shadow-lg z-50 overflow-y-auto"
+                className="fixed top-[72px] right-0 bottom-0 w-[28rem] max-w-full bg-white border-l border-gray-200 shadow-lg rounded-l-xl z-50 overflow-y-auto"
               >
                 <HistoryPanel
                   history={history}

@@ -10,9 +10,8 @@ export interface HistoryItem {
 }
 
 interface HistoryPanelProps {
-  historyVisible?: boolean;
-  onClose?: () => void;
   history?: HistoryItem[];
+  onClose?: () => void;
   onSelect?: (item: HistoryItem) => void;
 }
 
@@ -25,19 +24,22 @@ const methodColors: Record<string, string> = {
 };
 
 const HistoryPanel: React.FC<HistoryPanelProps> = ({
-  onClose,
   history = [],
+  onClose,
   onSelect = () => {},
 }) => {
   return (
     <motion.div
-      className="h-full flex flex-col p-4"
+      className="h-full flex flex-col p-4 rounded-l-xl shadow-lg"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Header */}
       <div className="flex justify-between items-center mb-4 border-b border-gray-200 pb-2">
-        <h3 className="text-lg font-semibold text-gray-800">Request History</h3>
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          📜 Request History
+        </h3>
         <button
           onClick={onClose}
           aria-label="Close history panel"
@@ -47,8 +49,13 @@ const HistoryPanel: React.FC<HistoryPanelProps> = ({
         </button>
       </div>
 
+      {/* Empty State */}
       {history.length === 0 ? (
-        <p className="text-gray-500 text-sm italic">No requests sent yet.</p>
+        <div className="flex flex-col items-center justify-center flex-1 text-gray-500 space-y-2 select-none">
+          <span className="text-5xl">🗂️</span>
+          <p className="font-medium">No requests yet</p>
+          <p className="text-xs text-gray-400">Make a request to see it here</p>
+        </div>
       ) : (
         <ul className="overflow-y-auto flex-1 space-y-2">
           {history.map((item, idx) => (
