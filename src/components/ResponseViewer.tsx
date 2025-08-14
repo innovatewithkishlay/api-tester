@@ -1,5 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import {
+  vscDarkPlus,
+  oneLight,
+} from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface ResponseViewerProps {
   status: number | null;
@@ -8,8 +13,29 @@ interface ResponseViewerProps {
   duration?: number;
 }
 
-const ResponseViewer: React.FC<ResponseViewerProps> = ({ status, data, headers, duration }) => {
+const ResponseViewer: React.FC<ResponseViewerProps> = ({
+  status,
+  data,
+  headers,
+  duration,
+}) => {
   const [showHeaders, setShowHeaders] = useState(false);
+  const [isDark, setIsDark] = useState(false);
+
+  // Detect initial dark mode
+  useEffect(() => {
+    setIsDark(document.documentElement.classList.contains("dark"));
+
+    // Listen for theme change via MutationObserver (for live toggle updates)
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <AnimatePresence>
@@ -22,11 +48,13 @@ const ResponseViewer: React.FC<ResponseViewerProps> = ({ status, data, headers, 
           transition={{ duration: 0.25 }}
           className="mt-6 p-4 bg-[#1b1b1b] dark:bg-[#1b1b1b] text-green-400 rounded-lg overflow-auto max-h-96 shadow-lg"
         >
+          {/* Status and Duration */}
           <div className="mb-2 text-sm text-gray-400 flex justify-between">
             <span>Status: {status}</span>
             {duration !== undefined && <span>{duration} ms</span>}
           </div>
 
+          {/* Headers Section */}
           {headers && (
             <div className="mb-3">
               <button
@@ -36,16 +64,33 @@ const ResponseViewer: React.FC<ResponseViewerProps> = ({ status, data, headers, 
                 {showHeaders ? "Hide Headers" : "Show Headers"}
               </button>
               {showHeaders && (
-                <pre className="bg-[#2a2a2a] p-2 rounded mt-2 text-xs text-gray-300">
+                <SyntaxHighlighter
+                  language="json"
+                  style={isDark ? vscDarkPlus : oneLight}
+                  customStyle={{
+                    borderRadius: "6px",
+                    padding: "10px",
+                    fontSize: "0.75rem",
+                  }}
+                >
                   {JSON.stringify(headers, null, 2)}
-                </pre>
+                </SyntaxHighlighter>
               )}
             </div>
           )}
 
-          <pre className="whitespace-pre-wrap break-all">
+          {/* Response Body Section */}
+          <SyntaxHighlighter
+            language="json"
+            style={isDark ? vscDarkPlus : oneLight}
+            customStyle={{
+              borderRadius: "6px",
+              padding: "12px",
+              fontSize: "0.85rem",
+            }}
+          >
             {JSON.stringify(data, null, 2)}
-          </pre>
+          </SyntaxHighlighter>
         </motion.div>
       )}
     </AnimatePresence>
