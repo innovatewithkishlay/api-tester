@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import ResponseViewer from "./ResponseViewer";
+
 import HistoryPanel from "./HistoryPanel";
 import type { HistoryItem } from "./HistoryPanel";
 
 import EnvironmentManager from "./EnvironmentManager";
 import type { Environment } from "./EnvironmentManager";
-
 
 interface Header {
   key: string;
@@ -29,11 +29,9 @@ const ApiForm: React.FC = () => {
   const [responseHeaders, setResponseHeaders] = useState<Record<string, string>>();
   const [duration, setDuration] = useState<number>();
 
-  // Environment state
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [activeEnvId, setActiveEnvId] = useState<string>("");
 
-  // Load history & environments on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem(LOCAL_STORAGE_KEY_HISTORY);
     if (savedHistory) setHistory(JSON.parse(savedHistory));
@@ -42,14 +40,12 @@ const ApiForm: React.FC = () => {
     if (savedEnvs) setEnvironments(JSON.parse(savedEnvs));
   }, []);
 
-  // Save history function
   const saveHistoryItem = (item: HistoryItem) => {
     const updated = [item, ...history].slice(0, 20);
     setHistory(updated);
     localStorage.setItem(LOCAL_STORAGE_KEY_HISTORY, JSON.stringify(updated));
   };
 
-  // Replace {{variables}} with environment values
   const replaceVariables = (text: string) => {
     if (!text) return text;
     const env = environments.find(e => e.id === activeEnvId);
@@ -125,7 +121,7 @@ const ApiForm: React.FC = () => {
         body: ["POST", "PUT", "PATCH"].includes(method) ? body : undefined,
         timestamp: Date.now(),
       });
-    } catch (err: any) {
+    } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setStatus(err.response.status);
         setResponseData(err.response.data);
@@ -134,9 +130,12 @@ const ApiForm: React.FC = () => {
           Object.entries(err.response.headers).forEach(([k, v]) => (plain[k] = String(v)));
           setResponseHeaders(plain);
         }
+      } else if (err instanceof Error) {
+        setStatus(0);
+        setResponseData({ error: err.message });
       } else {
         setStatus(0);
-        setResponseData({ error: err.message || "Unexpected error" });
+        setResponseData({ error: "Unexpected error" });
       }
     } finally {
       setLoading(false);
@@ -153,10 +152,8 @@ const ApiForm: React.FC = () => {
   return (
     <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-[2fr,1fr] gap-6">
       <div>
-        {/* Environment Manager */}
         <EnvironmentManager environments={environments} setEnvironments={setEnvironments} />
 
-        {/* Environment Selector */}
         {environments.length > 0 && (
           <div className="mb-4">
             <label className="mr-2 font-medium">Active Environment:</label>
@@ -173,7 +170,6 @@ const ApiForm: React.FC = () => {
           </div>
         )}
 
-        {/* Request Form */}
         <form
           onSubmit={handleSubmit}
           className="p-6 rounded-lg bg-white shadow-md space-y-4 text-gray-900"
@@ -189,14 +185,17 @@ const ApiForm: React.FC = () => {
             </button>
           </div>
 
-          {/* Method + URL */}
           <div className="flex gap-2">
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
               className="border border-gray-300 rounded px-3 py-2 bg-gray-50"
             >
-              <option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>PATCH</option>
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+              <option>PATCH</option>
             </select>
             <input
               type="text"
@@ -207,7 +206,6 @@ const ApiForm: React.FC = () => {
             />
           </div>
 
-          {/* Headers */}
           <div>
             <div className="flex justify-between items-center mb-2">
               <label className="font-medium">Headers</label>
@@ -246,7 +244,6 @@ const ApiForm: React.FC = () => {
             ))}
           </div>
 
-          {/* JSON Body */}
           {["POST", "PUT", "PATCH"].includes(method) && (
             <textarea
               placeholder="Enter JSON request body..."
@@ -265,7 +262,6 @@ const ApiForm: React.FC = () => {
           </button>
         </form>
 
-        {/* Response Viewer */}
         <ResponseViewer
           status={status}
           data={responseData}
@@ -274,11 +270,10 @@ const ApiForm: React.FC = () => {
         />
       </div>
 
-      {/* History Panel - Desktop */}
       <div className="hidden md:block">
         <HistoryPanel history={history} onSelect={handleHistorySelect} isOpen={true} />
       </div>
-      {/* History Panel - Mobile */}
+
       {historyOpen && (
         <div className="md:hidden col-span-full">
           <HistoryPanel history={history} onSelect={handleHistorySelect} isOpen={historyOpen} />
