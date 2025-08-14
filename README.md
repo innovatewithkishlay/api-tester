@@ -143,7 +143,7 @@ MIT License — do what you want, just don’t blame me if you break the interne
 
 ## Contact
 
-**Kishlay Verma**  
+**Kishlay **  
 GitHub: [@innovatewithkishlay](https://github.com/innovatewithkishlay)
 
 ---
